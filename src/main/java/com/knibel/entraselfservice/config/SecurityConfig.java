@@ -2,10 +2,13 @@ package com.knibel.entraselfservice.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.client.RestTemplate;
+
+import java.net.http.HttpClient;
 
 @Configuration
 public class SecurityConfig {
@@ -23,6 +26,6 @@ public class SecurityConfig {
 
     @Bean
     RestTemplate restTemplate() {
-        return new RestTemplate();
+        return new RestTemplate(new JdkClientHttpRequestFactory(HttpClient.newHttpClient()));
     }
 }

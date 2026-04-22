@@ -1,6 +1,7 @@
 package com.knibel.entraselfservice.service;
 
 import com.knibel.entraselfservice.config.EntraProperties;
+import com.knibel.entraselfservice.model.CreateUserRequest;
 import com.knibel.entraselfservice.model.UpdateEmailRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -82,6 +83,24 @@ class GraphProvisioningServiceTest {
             .andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
 
         service.updatePrimaryEmail(new UpdateEmailRequest("old@example.com", "new@example.com"), principal);
+
+        server.verify();
+    }
+
+    @Test
+    void inviteUserCreatesInvitationAndPatchesUserProfile() {
+        server.expect(requestTo("https://graph.microsoft.com/v1.0/invitations"))
+            .andExpect(method(HttpMethod.POST))
+            .andRespond(withSuccess("{\"invitedUser\":{\"id\":\"user-2\"}}", MediaType.APPLICATION_JSON));
+
+        server.expect(requestTo("https://graph.microsoft.com/v1.0/users/user-2"))
+            .andExpect(method(HttpMethod.PATCH))
+            .andRespond(withSuccess());
+
+        service.inviteUser(
+            new CreateUserRequest("new@example.com", "Contoso", "Engineering", "Ada", "Lovelace"),
+            principal
+        );
 
         server.verify();
     }
