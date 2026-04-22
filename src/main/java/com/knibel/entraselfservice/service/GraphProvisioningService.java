@@ -117,7 +117,8 @@ public class GraphProvisioningService {
     }
 
     private String findUserIdByEmail(String email, String token) {
-        String filter = "identities/any(c:c/issuerAssignedId eq '" + email.replace("'", "''") + "' and c/signInType eq 'emailAddress')";
+        validateFilterSafeEmail(email);
+        String filter = "identities/any(c:c/issuerAssignedId eq '" + email + "' and c/signInType eq 'emailAddress')";
         String uri = UriComponentsBuilder
             .fromUriString(graphUrl("/users"))
             .queryParam("$top", 1)
@@ -139,6 +140,12 @@ public class GraphProvisioningService {
 
         Object id = firstMap.get("id");
         return Objects.toString(id, null);
+    }
+
+    private void validateFilterSafeEmail(String email) {
+        if (email.contains("'") || email.contains("\n") || email.contains("\r")) {
+            throw new IllegalArgumentException("Email contains unsupported characters");
+        }
     }
 
     private String extractUserId(Map body) {

@@ -19,6 +19,7 @@ import java.time.Instant;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
@@ -82,6 +83,20 @@ class GraphProvisioningServiceTest {
             .andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
 
         service.updatePrimaryEmail(new UpdateEmailRequest("old@example.com", "new@example.com"), principal);
+
+        server.verify();
+    }
+
+    @Test
+    void updatePrimaryEmailThrowsWhenUserNotFound() {
+        server.expect(requestTo(org.hamcrest.Matchers.containsString("/users?")))
+            .andExpect(method(HttpMethod.GET))
+            .andRespond(withSuccess("{\"value\":[]}", MediaType.APPLICATION_JSON));
+
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> service.updatePrimaryEmail(new UpdateEmailRequest("old@example.com", "new@example.com"), principal)
+        );
 
         server.verify();
     }
