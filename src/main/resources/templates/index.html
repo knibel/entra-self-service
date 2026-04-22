@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Entra Self Service</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2rem; }
+        .container { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem; }
+        .card { border: 1px solid #ddd; border-radius: 8px; padding: 1rem 1.25rem; }
+        label { display: block; margin-top: .6rem; font-weight: bold; }
+        input { width: 100%; padding: .5rem; margin-top: .2rem; box-sizing: border-box; }
+        button { margin-top: 1rem; padding: .6rem 1rem; }
+        .flash-success { background: #e9f8ef; border: 1px solid #8fd0a6; color: #215e35; padding: .8rem; margin-bottom: 1rem; }
+        .flash-error { background: #fdecec; border: 1px solid #ef9a9a; color: #842029; padding: .8rem; margin-bottom: 1rem; }
+        .field-error { color: #842029; font-size: .9rem; }
+    </style>
+</head>
+<body>
+<h1>Entra ID Self Service</h1>
+
+<div class="flash-success" th:if="${successMessage}" th:text="${successMessage}"></div>
+<div class="flash-error" th:if="${errorMessage}" th:text="${errorMessage}"></div>
+
+<div class="container">
+    <section class="card">
+        <h2>Create user + send invitation</h2>
+        <form th:action="@{/users}" th:object="${createUserRequest}" method="post">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+            <label for="email">Email address</label>
+            <input id="email" type="email" th:field="*{email}" required/>
+            <div class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+
+            <label for="companyName">Company name</label>
+            <input id="companyName" th:field="*{companyName}" required/>
+            <div class="field-error" th:if="${#fields.hasErrors('companyName')}" th:errors="*{companyName}"></div>
+
+            <label for="department">Department</label>
+            <input id="department" th:field="*{department}" required/>
+            <div class="field-error" th:if="${#fields.hasErrors('department')}" th:errors="*{department}"></div>
+
+            <label for="firstName">First name</label>
+            <input id="firstName" th:field="*{firstName}" required/>
+            <div class="field-error" th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}"></div>
+
+            <label for="lastName">Last name</label>
+            <input id="lastName" th:field="*{lastName}" required/>
+            <div class="field-error" th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}"></div>
+
+            <button type="submit">Create + invite</button>
+        </form>
+    </section>
+
+    <section class="card">
+        <h2>Update primary email + re-invite</h2>
+        <form th:action="@{/users/email}" th:object="${updateEmailRequest}" method="post">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+            <label for="currentEmail">Current email</label>
+            <input id="currentEmail" type="email" th:field="*{currentEmail}" required/>
+            <div class="field-error" th:if="${#fields.hasErrors('currentEmail')}" th:errors="*{currentEmail}"></div>
+
+            <label for="newEmail">New email</label>
+            <input id="newEmail" type="email" th:field="*{newEmail}" required/>
+            <div class="field-error" th:if="${#fields.hasErrors('newEmail')}" th:errors="*{newEmail}"></div>
+
+            <button type="submit">Update + re-invite</button>
+        </form>
+    </section>
+</div>
+</body>
+</html>
