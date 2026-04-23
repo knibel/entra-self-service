@@ -15,9 +15,6 @@ public class EntraProperties {
     private String tenantDomain;
 
     @NotBlank
-    private String inviteRedirectUrl;
-
-    @NotBlank
     private String clientRegistrationId = "azure";
 
     @NotBlank
@@ -37,14 +34,6 @@ public class EntraProperties {
 
     public void setTenantDomain(String tenantDomain) {
         this.tenantDomain = tenantDomain;
-    }
-
-    public String getInviteRedirectUrl() {
-        return inviteRedirectUrl;
-    }
-
-    public void setInviteRedirectUrl(String inviteRedirectUrl) {
-        this.inviteRedirectUrl = inviteRedirectUrl;
     }
 
     public String getClientRegistrationId() {
