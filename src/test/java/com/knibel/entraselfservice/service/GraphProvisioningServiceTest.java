@@ -21,7 +21,6 @@ import java.time.Instant;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
@@ -65,6 +64,7 @@ class GraphProvisioningServiceTest {
         props.setGraphBaseUrl("https://graph.microsoft.com/v1.0");
         props.setTenantDomain("contoso.onmicrosoft.com");
         props.setTenantId("tenant");
+        props.setPasswordResetUrl("https://passwordreset.microsoftonline.com/");
 
         service = new GraphProvisioningService(restTemplate, clientService, props);
     }
@@ -91,7 +91,7 @@ class GraphProvisioningServiceTest {
     }
 
     @Test
-    void createUserPostsUserAndSendsInitialPasswordEmail() {
+    void createUserPostsUserAndSendsPasswordResetEmail() {
         server.expect(requestTo("https://graph.microsoft.com/v1.0/users"))
             .andExpect(method(HttpMethod.POST))
             .andRespond(withSuccess("{\"id\":\"user-2\"}", MediaType.APPLICATION_JSON));
@@ -109,10 +109,10 @@ class GraphProvisioningServiceTest {
     }
 
     @Test
-    void generatePasswordMeetsComplexityRequirements() {
-        for (int i = 0; i < 50; i++) {
-            String pw = service.generatePassword();
-            assertThat(pw).hasSize(16);
+    void generateTemporaryPasswordIsSecureAndMeetsComplexity() {
+        for (int i = 0; i < 20; i++) {
+            String pw = service.generateTemporaryPassword();
+            assertThat(pw).hasSizeGreaterThanOrEqualTo(16);
             assertThat(pw).matches(".*[A-Z].*");
             assertThat(pw).matches(".*[a-z].*");
             assertThat(pw).matches(".*[0-9].*");

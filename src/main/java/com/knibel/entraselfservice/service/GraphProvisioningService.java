@@ -16,23 +16,13 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
-import java.security.SecureRandom;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 
 @Service
 public class GraphProvisioningService {
-
-    // Visually ambiguous characters (I, O, l, 1, 0) are intentionally excluded
-    // to avoid confusion when users read the generated password from an email.
-    private static final String PW_UPPER   = "ABCDEFGHJKLMNPQRSTUVWXYZ";
-    private static final String PW_LOWER   = "abcdefghjkmnpqrstuvwxyz";
-    private static final String PW_DIGITS  = "23456789";
-    private static final String PW_SPECIAL = "!@#$%^&*";
-    private static final String PW_ALL     = PW_UPPER + PW_LOWER + PW_DIGITS + PW_SPECIAL;
-    private static final int    PW_LENGTH  = 16;
-    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     private final RestTemplate restTemplate;
     private final OAuth2AuthorizedClientService authorizedClientService;
@@ -50,7 +40,7 @@ public class GraphProvisioningService {
 
     public void createUser(CreateUserRequest request, OAuth2AuthenticationToken principal) {
         String token = accessToken(principal);
-        String password = generatePassword();
+        String password = generateTemporaryPassword();
 
         Map<String, Object> userBody = Map.of(
             "accountEnabled", true,
@@ -84,7 +74,7 @@ public class GraphProvisioningService {
             throw new IllegalStateException("User creation succeeded but no user id was returned by Microsoft Graph");
         }
 
-        sendInitialPasswordEmail(request.email(), request.firstName(), password, token);
+        sendPasswordResetEmail(request.email(), request.firstName(), token);
     }
 
     public void updatePrimaryEmail(UpdateEmailRequest request, OAuth2AuthenticationToken principal) {
@@ -117,13 +107,12 @@ public class GraphProvisioningService {
         sendEmailUpdateNotification(request.newEmail(), token);
     }
 
-    private void sendInitialPasswordEmail(String email, String firstName, String password, String token) {
+    private void sendPasswordResetEmail(String email, String firstName, String token) {
         String text = "Hello " + firstName + ",\n\n"
-            + "Your account has been created.\n"
-            + "Your initial password is: " + password + "\n\n"
-            + "Please log in immediately, change your password, and then delete this email.\n"
-            + "Your administrator can reset your password if needed.";
-        sendMail(email, "Welcome – Your new account", text, token);
+            + "Your account has been created. Please use the link below to set your password:\n"
+            + properties.getPasswordResetUrl() + "\n\n"
+            + "Use your email address (" + email + ") to identify your account.";
+        sendMail(email, "Welcome – Set your password", text, token);
     }
 
     private void sendEmailUpdateNotification(String newEmail, String token) {
@@ -182,24 +171,11 @@ public class GraphProvisioningService {
         return Objects.toString(id, null);
     }
 
-    String generatePassword() {
-        char[] chars = new char[PW_LENGTH];
-        // Guarantee at least one character from each required group
-        chars[0] = PW_UPPER.charAt(SECURE_RANDOM.nextInt(PW_UPPER.length()));
-        chars[1] = PW_LOWER.charAt(SECURE_RANDOM.nextInt(PW_LOWER.length()));
-        chars[2] = PW_DIGITS.charAt(SECURE_RANDOM.nextInt(PW_DIGITS.length()));
-        chars[3] = PW_SPECIAL.charAt(SECURE_RANDOM.nextInt(PW_SPECIAL.length()));
-        for (int i = 4; i < PW_LENGTH; i++) {
-            chars[i] = PW_ALL.charAt(SECURE_RANDOM.nextInt(PW_ALL.length()));
-        }
-        // Fisher-Yates shuffle
-        for (int i = PW_LENGTH - 1; i > 0; i--) {
-            int j = SECURE_RANDOM.nextInt(i + 1);
-            char tmp = chars[i];
-            chars[i] = chars[j];
-            chars[j] = tmp;
-        }
-        return new String(chars);
+    String generateTemporaryPassword() {
+        // Use a random UUID as the base (cryptographically secure). Append a fixed suffix to
+        // satisfy Entra's password complexity requirements (uppercase, digit, special character).
+        // This password is never sent to the user; they reset it via the password reset link.
+        return UUID.randomUUID().toString() + "A1!";
     }
 
     private HttpEntity<?> entity(Object body, String token) {

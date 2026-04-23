@@ -28,3 +28,4 @@ entra:
   tenant-id: ${ENTRA_TENANT_ID}
   tenant-domain: ${ENTRA_TENANT_DOMAIN}
   client-registration-id: azure
+  password-reset-url: ${ENTRA_PASSWORD_RESET_URL:https://passwordreset.microsoftonline.com/}

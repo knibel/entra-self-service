@@ -20,6 +20,9 @@ public class EntraProperties {
     @NotBlank
     private String graphBaseUrl = "https://graph.microsoft.com/v1.0";
 
+    @NotBlank
+    private String passwordResetUrl = "https://passwordreset.microsoftonline.com/";
+
     public String getTenantId() {
         return tenantId;
     }
@@ -50,5 +53,13 @@ public class EntraProperties {
 
     public void setGraphBaseUrl(String graphBaseUrl) {
         this.graphBaseUrl = graphBaseUrl;
+    }
+
+    public String getPasswordResetUrl() {
+        return passwordResetUrl;
+    }
+
+    public void setPasswordResetUrl(String passwordResetUrl) {
+        this.passwordResetUrl = passwordResetUrl;
     }
 }
