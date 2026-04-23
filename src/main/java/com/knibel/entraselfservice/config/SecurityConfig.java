@@ -2,7 +2,6 @@ package com.knibel.entraselfservice.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.client.BufferingClientHttpRequestFactory;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -28,8 +27,7 @@ public class SecurityConfig {
 
     @Bean
     RestTemplate restTemplate() {
-        RestTemplate restTemplate = new RestTemplate(
-                new BufferingClientHttpRequestFactory(new JdkClientHttpRequestFactory(HttpClient.newHttpClient())));
+        RestTemplate restTemplate = new RestTemplate(new JdkClientHttpRequestFactory(HttpClient.newHttpClient()));
         restTemplate.setInterceptors(List.of(new GraphApiLoggingInterceptor()));
         return restTemplate;
     }
