@@ -15,13 +15,13 @@ public class EntraProperties {
     private String tenantDomain;
 
     @NotBlank
-    private String inviteRedirectUrl;
-
-    @NotBlank
     private String clientRegistrationId = "azure";
 
     @NotBlank
     private String graphBaseUrl = "https://graph.microsoft.com/v1.0";
+
+    @NotBlank
+    private String passwordResetUrl = "https://passwordreset.microsoftonline.com/";
 
     public String getTenantId() {
         return tenantId;
@@ -39,14 +39,6 @@ public class EntraProperties {
         this.tenantDomain = tenantDomain;
     }
 
-    public String getInviteRedirectUrl() {
-        return inviteRedirectUrl;
-    }
-
-    public void setInviteRedirectUrl(String inviteRedirectUrl) {
-        this.inviteRedirectUrl = inviteRedirectUrl;
-    }
-
     public String getClientRegistrationId() {
         return clientRegistrationId;
     }
@@ -61,5 +53,13 @@ public class EntraProperties {
 
     public void setGraphBaseUrl(String graphBaseUrl) {
         this.graphBaseUrl = graphBaseUrl;
+    }
+
+    public String getPasswordResetUrl() {
+        return passwordResetUrl;
+    }
+
+    public void setPasswordResetUrl(String passwordResetUrl) {
+        this.passwordResetUrl = passwordResetUrl;
     }
 }

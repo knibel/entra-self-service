@@ -13,9 +13,9 @@ spring:
               - openid
               - profile
               - email
-              - User.Invite.All
               - User.ReadWrite.All
               - Directory.Read.All
+              - Mail.Send
         provider:
           azure:
             authorization-uri: https://login.microsoftonline.com/${ENTRA_TENANT_ID}/oauth2/v2.0/authorize
@@ -27,5 +27,5 @@ spring:
 entra:
   tenant-id: ${ENTRA_TENANT_ID}
   tenant-domain: ${ENTRA_TENANT_DOMAIN}
-  invite-redirect-url: ${ENTRA_INVITE_REDIRECT_URL:http://localhost:8080/}
   client-registration-id: azure
+  password-reset-url: ${ENTRA_PASSWORD_RESET_URL:https://passwordreset.microsoftonline.com/}

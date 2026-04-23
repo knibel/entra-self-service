@@ -19,6 +19,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 
 @Service
 public class GraphProvisioningService {
@@ -37,41 +38,43 @@ public class GraphProvisioningService {
         this.properties = properties;
     }
 
-    public void inviteUser(CreateUserRequest request, OAuth2AuthenticationToken principal) {
+    public void createUser(CreateUserRequest request, OAuth2AuthenticationToken principal) {
         String token = accessToken(principal);
-        Map<String, Object> inviteRequest = Map.of(
-            "invitedUserEmailAddress", request.email(),
-            "inviteRedirectUrl", properties.getInviteRedirectUrl(),
-            "sendInvitationMessage", true,
-            "invitedUserDisplayName", request.firstName() + " " + request.lastName()
+        String password = generateTemporaryPassword();
+
+        Map<String, Object> userBody = Map.of(
+            "accountEnabled", true,
+            "displayName", request.firstName() + " " + request.lastName(),
+            "givenName", request.firstName(),
+            "surname", request.lastName(),
+            "companyName", request.companyName(),
+            "department", request.department(),
+            "mail", request.email(),
+            "identities", List.of(Map.of(
+                "signInType", "emailAddress",
+                "issuer", properties.getTenantDomain(),
+                "issuerAssignedId", request.email()
+            )),
+            "passwordProfile", Map.of(
+                "forceChangePasswordNextSignIn", true,
+                "password", password
+            ),
+            "passwordPolicies", "DisablePasswordExpiration"
         );
 
         ResponseEntity<Map> response = restTemplate.exchange(
-            graphUrl("/invitations"),
+            graphUrl("/users"),
             HttpMethod.POST,
-            entity(inviteRequest, token),
+            entity(userBody, token),
             Map.class
         );
 
-        String userId = extractUserId(response.getBody());
-        if (userId == null) {
-            throw new IllegalStateException("Invitation succeeded but no invited user id was returned by Microsoft Graph");
+        Map body = response.getBody();
+        if (body == null || body.get("id") == null) {
+            throw new IllegalStateException("User creation succeeded but no user id was returned by Microsoft Graph");
         }
 
-        Map<String, Object> userPatch = Map.of(
-            "givenName", request.firstName(),
-            "surname", request.lastName(),
-            "displayName", request.firstName() + " " + request.lastName(),
-            "companyName", request.companyName(),
-            "department", request.department()
-        );
-
-        restTemplate.exchange(
-            graphUrl("/users/" + userId),
-            HttpMethod.PATCH,
-            entity(userPatch, token),
-            Void.class
-        );
+        sendPasswordResetEmail(request.email(), request.firstName(), token);
     }
 
     public void updatePrimaryEmail(UpdateEmailRequest request, OAuth2AuthenticationToken principal) {
@@ -101,19 +104,42 @@ public class GraphProvisioningService {
             Void.class
         );
 
-        Map<String, Object> reinviteRequest = Map.of(
-            "invitedUserEmailAddress", request.newEmail(),
-            "inviteRedirectUrl", properties.getInviteRedirectUrl(),
-            "sendInvitationMessage", true,
-            "resetRedemption", true,
-            "invitedUser", Map.of("id", userId)
+        sendEmailUpdateNotification(request.newEmail(), token);
+    }
+
+    private void sendPasswordResetEmail(String email, String firstName, String token) {
+        String text = "Hello " + firstName + ",\n\n"
+            + "Your account has been created. Please use the link below to set your password:\n"
+            + properties.getPasswordResetUrl() + "\n\n"
+            + "Use your email address (" + email + ") to identify your account.";
+        sendMail(email, "Welcome – Set your password", text, token);
+    }
+
+    private void sendEmailUpdateNotification(String newEmail, String token) {
+        String text = "Your sign-in email address has been updated to: " + newEmail + "\n\n"
+            + "If you did not request this change, please contact your administrator immediately.";
+        sendMail(newEmail, "Your sign-in email has been updated", text, token);
+    }
+
+    private void sendMail(String toAddress, String subject, String text, String token) {
+        Map<String, Object> message = Map.of(
+            "message", Map.of(
+                "subject", subject,
+                "body", Map.of(
+                    "contentType", "Text",
+                    "content", text
+                ),
+                "toRecipients", List.of(
+                    Map.of("emailAddress", Map.of("address", toAddress))
+                )
+            )
         );
 
         restTemplate.exchange(
-            graphUrl("/invitations"),
+            graphUrl("/me/sendMail"),
             HttpMethod.POST,
-            entity(reinviteRequest, token),
-            Map.class
+            entity(message, token),
+            Void.class
         );
     }
 
@@ -145,15 +171,11 @@ public class GraphProvisioningService {
         return Objects.toString(id, null);
     }
 
-    private String extractUserId(Map body) {
-        if (body == null) {
-            return null;
-        }
-        Object invitedUser = body.get("invitedUser");
-        if (!(invitedUser instanceof Map<?, ?> user)) {
-            return null;
-        }
-        return Objects.toString(user.get("id"), null);
+    String generateTemporaryPassword() {
+        // Use a random UUID as the base (cryptographically secure). Append a fixed suffix to
+        // satisfy Entra's password complexity requirements (uppercase, digit, special character).
+        // This password is never sent to the user; they reset it via the password reset link.
+        return UUID.randomUUID().toString() + "A1!";
     }
 
     private HttpEntity<?> entity(Object body, String token) {

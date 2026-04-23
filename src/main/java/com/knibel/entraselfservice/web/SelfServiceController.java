@@ -47,8 +47,8 @@ public class SelfServiceController {
         }
 
         try {
-            provisioningService.inviteUser(createUserRequest, principal);
-            redirectAttributes.addFlashAttribute("successMessage", "Invitation sent for " + createUserRequest.email());
+            provisioningService.createUser(createUserRequest, principal);
+            redirectAttributes.addFlashAttribute("successMessage", "User created and initial password sent to " + createUserRequest.email());
         } catch (RuntimeException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }
@@ -70,7 +70,7 @@ public class SelfServiceController {
 
         try {
             provisioningService.updatePrimaryEmail(updateEmailRequest, principal);
-            redirectAttributes.addFlashAttribute("successMessage", "Email updated and invitation re-sent to " + updateEmailRequest.newEmail());
+            redirectAttributes.addFlashAttribute("successMessage", "Email updated and notification sent to " + updateEmailRequest.newEmail());
         } catch (RuntimeException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }
