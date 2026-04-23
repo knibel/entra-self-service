@@ -20,6 +20,7 @@ import java.time.Instant;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
@@ -72,6 +73,7 @@ class GraphProvisioningServiceTest {
     void updatePrimaryEmailPatchesIdentityAndSendsInvitation() {
         server.expect(requestTo(org.hamcrest.Matchers.containsString("/users?")))
             .andExpect(method(HttpMethod.GET))
+            .andExpect(header("ConsistencyLevel", "eventual"))
             .andRespond(withSuccess("{\"value\":[{\"id\":\"user-1\"}]}", MediaType.APPLICATION_JSON));
 
         server.expect(requestTo("https://graph.microsoft.com/v1.0/users/user-1"))

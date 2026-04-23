@@ -123,10 +123,15 @@ public class GraphProvisioningService {
             .queryParam("$top", 1)
             .queryParam("$select", "id")
             .queryParam("$filter", filter)
+            .queryParam("$count", "true")
             .build()
             .toUriString();
 
-        ResponseEntity<Map> response = restTemplate.exchange(uri, HttpMethod.GET, entity(null, token), Map.class);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("ConsistencyLevel", "eventual");
+        ResponseEntity<Map> response = restTemplate.exchange(uri, HttpMethod.GET, new HttpEntity<>(headers), Map.class);
         Object rawValue = response.getBody() == null ? null : response.getBody().get("value");
         if (!(rawValue instanceof List<?> values) || values.isEmpty()) {
             return null;
