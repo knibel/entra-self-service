@@ -9,6 +9,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.http.HttpClient;
+import java.util.List;
 
 @Configuration
 public class SecurityConfig {
@@ -26,6 +27,8 @@ public class SecurityConfig {
 
     @Bean
     RestTemplate restTemplate() {
-        return new RestTemplate(new JdkClientHttpRequestFactory(HttpClient.newHttpClient()));
+        RestTemplate restTemplate = new RestTemplate(new JdkClientHttpRequestFactory(HttpClient.newHttpClient()));
+        restTemplate.setInterceptors(List.of(new GraphApiLoggingInterceptor()));
+        return restTemplate;
     }
 }
