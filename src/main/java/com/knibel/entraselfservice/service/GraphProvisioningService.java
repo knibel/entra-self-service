@@ -144,18 +144,24 @@ public class GraphProvisioningService {
     }
 
     private String findUserIdByEmail(String email, String token) {
-        String filter = "mail eq '" + email.replace("'", "''") + "'";
+        String safeEmail = email.replace("'", "''");
+        String safeIssuer = properties.getTenantDomain().replace("'", "''");
+        String filter = "identities/any(c:c/signInType eq 'emailAddress'"
+            + " and c/issuer eq '" + safeIssuer + "'"
+            + " and c/issuerAssignedId eq '" + safeEmail + "')";
         URI uri = UriComponentsBuilder
             .fromUriString(graphUrl("/users"))
             .queryParam("$top", 1)
             .queryParam("$select", "id")
             .queryParam("$filter", filter)
+            .queryParam("$count", "true")
             .encode()
             .build()
             .toUri();
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(token);
+        headers.set("ConsistencyLevel", "eventual");
         ResponseEntity<Map> response = restTemplate.exchange(uri, HttpMethod.GET, new HttpEntity<>(headers), Map.class);
         Object rawValue = response.getBody() == null ? null : response.getBody().get("value");
         if (!(rawValue instanceof List<?> values) || values.isEmpty()) {

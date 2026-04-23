@@ -73,7 +73,9 @@ class GraphProvisioningServiceTest {
     void updatePrimaryEmailPatchesIdentityAndSendsNotification() {
         server.expect(requestTo(org.hamcrest.Matchers.allOf(
                     org.hamcrest.Matchers.containsString("/users?"),
-                    org.hamcrest.Matchers.containsString("$filter="))))
+                    org.hamcrest.Matchers.containsString("identities"),
+                    org.hamcrest.Matchers.containsString("emailAddress"),
+                    org.hamcrest.Matchers.containsString("contoso.onmicrosoft.com"))))
             .andExpect(method(HttpMethod.GET))
             .andRespond(withSuccess("{\"value\":[{\"id\":\"user-1\"}]}", MediaType.APPLICATION_JSON));
 
