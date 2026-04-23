@@ -71,9 +71,10 @@ class GraphProvisioningServiceTest {
 
     @Test
     void updatePrimaryEmailPatchesIdentityAndSendsInvitation() {
-        server.expect(requestTo(org.hamcrest.Matchers.containsString("/users?")))
+        server.expect(requestTo(org.hamcrest.Matchers.allOf(
+                    org.hamcrest.Matchers.containsString("/users?"),
+                    org.hamcrest.Matchers.containsString("$filter="))))
             .andExpect(method(HttpMethod.GET))
-            .andExpect(header("ConsistencyLevel", "eventual"))
             .andRespond(withSuccess("{\"value\":[{\"id\":\"user-1\"}]}", MediaType.APPLICATION_JSON));
 
         server.expect(requestTo("https://graph.microsoft.com/v1.0/users/user-1"))
