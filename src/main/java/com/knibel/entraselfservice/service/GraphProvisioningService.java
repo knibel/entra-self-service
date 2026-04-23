@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -118,18 +119,18 @@ public class GraphProvisioningService {
 
     private String findUserIdByEmail(String email, String token) {
         String filter = "identities/any(c:c/issuerAssignedId eq '" + email.replace("'", "''") + "' and c/signInType eq 'emailAddress')";
-        String uri = UriComponentsBuilder
+        URI uri = UriComponentsBuilder
             .fromUriString(graphUrl("/users"))
             .queryParam("$top", 1)
             .queryParam("$select", "id")
             .queryParam("$filter", filter)
             .queryParam("$count", "true")
+            .encode()
             .build()
-            .toUriString();
+            .toUri();
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(token);
-        headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("ConsistencyLevel", "eventual");
         ResponseEntity<Map> response = restTemplate.exchange(uri, HttpMethod.GET, new HttpEntity<>(headers), Map.class);
         Object rawValue = response.getBody() == null ? null : response.getBody().get("value");
