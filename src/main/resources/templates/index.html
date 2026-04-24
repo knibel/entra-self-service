@@ -14,10 +14,18 @@
         .flash-success { background: #e9f8ef; border: 1px solid #8fd0a6; color: #215e35; padding: .8rem; margin-bottom: 1rem; }
         .flash-error { background: #fdecec; border: 1px solid #ef9a9a; color: #842029; padding: .8rem; margin-bottom: 1rem; }
         .field-error { color: #842029; font-size: .9rem; }
+        .header { display: flex; justify-content: space-between; align-items: center; }
+        .sign-out-btn { margin-top: 0; padding: .5rem .9rem; background: #fff; border: 1px solid #ccc; cursor: pointer; }
     </style>
 </head>
 <body>
-<h1>Entra ID Self Service</h1>
+<div class="header">
+    <h1>Entra ID Self Service</h1>
+    <form th:action="@{/logout}" method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <button type="submit" class="sign-out-btn">Sign out</button>
+    </form>
+</div>
 
 <div class="flash-success" th:if="${successMessage}" th:text="${successMessage}"></div>
 <div class="flash-error" th:if="${errorMessage}" th:text="${errorMessage}"></div>
