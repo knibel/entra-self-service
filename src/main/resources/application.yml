@@ -18,10 +18,7 @@ spring:
               - Mail.Send
         provider:
           azure:
-            authorization-uri: https://login.microsoftonline.com/${ENTRA_TENANT_ID}/oauth2/v2.0/authorize
-            token-uri: https://login.microsoftonline.com/${ENTRA_TENANT_ID}/oauth2/v2.0/token
-            jwk-set-uri: https://login.microsoftonline.com/${ENTRA_TENANT_ID}/discovery/v2.0/keys
-            user-info-uri: https://graph.microsoft.com/oidc/userinfo
+            issuer-uri: https://login.microsoftonline.com/${ENTRA_TENANT_ID}/v2.0
             user-name-attribute: sub
 
 entra:
