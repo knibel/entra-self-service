@@ -23,13 +23,14 @@ public class SelfServiceController {
     }
 
     @GetMapping("/")
-    String index(Model model) {
+    String index(Model model, OAuth2AuthenticationToken principal) {
         if (!model.containsAttribute("createUserRequest")) {
             model.addAttribute("createUserRequest", new CreateUserRequest("", "", "", "", ""));
         }
         if (!model.containsAttribute("updateEmailRequest")) {
             model.addAttribute("updateEmailRequest", new UpdateEmailRequest("", ""));
         }
+        model.addAttribute("jwtClaims", principal.getPrincipal().getAttributes());
         return "index";
     }
 
